@@ -1,0 +1,272 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_gemini/flutter_gemini.dart';
+import 'dart:convert';
+
+class GenerateRecipeScreen extends StatefulWidget {
+  const GenerateRecipeScreen({Key? key}) : super(key: key);
+
+  @override
+  _GenerateRecipeScreenState createState() => _GenerateRecipeScreenState();
+}
+
+class _GenerateRecipeScreenState extends State<GenerateRecipeScreen> {
+  String? _selectedDiet;
+  String? _selectedCuisine;
+  bool _isLoading = false;
+  String? _rawResponse;
+  Map<String, dynamic>? _recipe;
+
+  final List<String> _dietaryPreferences = [
+    'Vegan',
+    'Vegetarian',
+    'Gluten-Free',
+    'Keto',
+    'Paleo'
+  ];
+
+  final List<String> _cuisineTypes = [
+    'Italian',
+    'Mexican',
+    'Indian',
+    'Chinese',
+    'Mediterranean'
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Generate Recipe'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _buildDietaryPreferencesChips(),
+            const SizedBox(height: 16),
+            _buildCuisineTypeChips(),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: (_selectedDiet != null &&
+                      _selectedCuisine != null &&
+                      !_isLoading)
+                  ? _generateRecipe
+                  : null,
+              child: _isLoading
+                  ? const CircularProgressIndicator()
+                  : const Text('Generate Recipe'),
+            ),
+            const SizedBox(height: 24),
+            _buildRecipeDisplay(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDietaryPreferencesChips() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Select your dietary preference:',
+            style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: _dietaryPreferences
+              .map((diet) => ChoiceChip(
+                    label: Text(diet),
+                    selected: _selectedDiet == diet,
+                    onSelected: (selected) {
+                      setState(() {
+                        _selectedDiet = selected ? diet : null;
+                      });
+                    },
+                  ))
+              .toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCuisineTypeChips() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Select your cuisine type:',
+            style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: _cuisineTypes
+              .map((cuisine) => ChoiceChip(
+                    label: Text(cuisine),
+                    selected: _selectedCuisine == cuisine,
+                    onSelected: (selected) {
+                      setState(() {
+                        _selectedCuisine = selected ? cuisine : null;
+                      });
+                    },
+                  ))
+              .toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRecipeDisplay() {
+    if (_recipe != null) {
+      return Expanded(
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                _recipe!['name'] ?? 'Recipe',
+                style: Theme.of(context)
+                    .textTheme
+                    .headlineSmall
+                    ?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              if (_recipe!.containsKey('imageUrl'))
+                Image.network(_recipe!['imageUrl']),
+              const SizedBox(height: 16),
+              _buildSection('Description', _recipe!['description']),
+              _buildSection('Ingredients', _recipe!['ingredients']),
+              _buildSection('Directions', _recipe!['directions']),
+              _buildSection('Nutritional Info', _recipe!['nutri_info']),
+            ],
+          ),
+        ),
+      );
+    } else if (_rawResponse != null) {
+      return Expanded(
+        child: SingleChildScrollView(
+          child: Text(
+            'Raw Response (Debug Info):\n$_rawResponse',
+            style: const TextStyle(color: Colors.red),
+          ),
+        ),
+      );
+    } else {
+      return const Text('No recipe generated yet.');
+    }
+  }
+
+  Widget _buildSection(String title, dynamic content) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 16),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            if (content is List)
+              ...content.map((item) => Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: Text(item.toString()),
+                  ))
+            else
+              Text(content.toString()),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _generateRecipe() async {
+    setState(() {
+      _isLoading = true;
+      _recipe = null;
+      _rawResponse = null;
+    });
+
+    final gemini = Gemini.instance;
+    try {
+      final response = await gemini.text(
+          '''Generate a detailed recipe for a ${_selectedDiet} dish with ${_selectedCuisine} cuisine. 
+          The recipe should include: name, duration, difficulty, imageUrl, description, servings, calories, ingredients, directions, and nutri_info in a JSON onject format
+          For example: {
+    'name': 'Spaghetti Carbonara',
+    'duration': '20 min',
+    'difficulty': 'Intermediate',
+    'imageUrl':
+        'https://www.allrecipes.com/thmb/Vg2cRidr2zcYhWGvPD8M18xM_WY=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/11973-spaghetti-carbonara-ii-DDMFS-4x3-6edea51e421e4457ac0c3269f3be5157.jpg',
+    'description':
+        'A classic Italian dish with eggs, cheese, pancetta, and pepper.',
+    'servings': 2,
+    'calories': 400,
+    'ingredients': [
+      '200g spaghetti',
+      '100g pancetta',
+      '2 large eggs',
+      '50g Pecorino cheese',
+      'Freshly ground black pepper',
+    ],
+    'directions': [
+      'Cook the spaghetti according to package instructions.',
+      'In a bowl, whisk the eggs and cheese together.',
+      'In a pan, cook the pancetta until crispy.',
+      'Add the cooked spaghetti to the pancetta, then remove from heat.',
+      'Quickly mix in the egg and cheese mixture, stirring continuously.',
+      'Season with black pepper and serve immediately.',
+    ],
+    'nutri_info': {
+      'carbs': '45g',
+      'protein': '20g',
+      'fat': '15g',
+    },
+  },
+          Note - for 'nutri_info': {
+      'carbs': '45g',
+      'protein': '20g',
+      'fat': '15g',
+    }, (Update only values inside the attributes for carbs, protein, and fat)
+          Format the response as a JSON object with these keys: name, duration, difficulty, imageUrl, description, servings, calories, ingredients, directions, and nutri_info.''');
+
+      if (response?.output != null) {
+        print("Raw Gemini response:");
+        print(response!.output);
+        setState(() {
+          _rawResponse = response.output;
+          _recipe = _parseRecipe(response.output!);
+          _isLoading = false;
+        });
+      } else {
+        throw Exception('No output from Gemini');
+      }
+    } catch (e) {
+      print('Error generating recipe: $e');
+      setState(() {
+        _isLoading = false;
+        _recipe = null;
+        _rawResponse = 'Error: $e';
+      });
+    }
+  }
+
+  Map<String, dynamic> _parseRecipe(String text) {
+    // Handle potential formatting issues
+    text = text.replaceAll('```json', '').replaceAll('```', '').trim();
+
+    try {
+      // Try to decode the JSON
+      return jsonDecode(text);
+    } catch (e) {
+      print('Error parsing JSON: $e');
+      return {};
+    }
+  }
+}
