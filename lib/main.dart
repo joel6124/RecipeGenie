@@ -40,7 +40,7 @@ class _AuthenticationPageState extends State<AuthenticationPage> {
   @override
   void initState() {
     super.initState();
-    _checkLoginStatus(); // Check login status when the widget is first created
+    _checkLoginStatus(); 
   }
 
   Future<void> _checkLoginStatus() async {

@@ -345,6 +345,7 @@
 // }
 
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:recipe_genie/db_helper.dart';
 import 'package:recipe_genie/menu.dart';
 import 'package:recipe_genie/predeifined_recipies.dart';
@@ -391,7 +392,7 @@ class _MyHomePageState extends State<MyHomePage> {
         appBar: AppBar(
           iconTheme: IconThemeData(color: Colors.orange[900], size: 30),
           toolbarHeight: 60,
-          title: const Row(
+          title: Row(
             children: [
               Icon(
                 Icons.local_dining,
@@ -399,12 +400,25 @@ class _MyHomePageState extends State<MyHomePage> {
                 size: 40,
               ),
               SizedBox(width: 15),
-              Text(
-                'Recipe Genie',
-                style: TextStyle(
-                  fontSize: 24,
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
+              RichText(
+                text: TextSpan(
+                  children: [
+                    TextSpan(
+                      text: 'Recipe',
+                      style: GoogleFonts.merienda(
+                        fontSize: 24,
+                        color: Colors.white,
+                      ),
+                    ),
+                    TextSpan(
+                      text: 'Genie',
+                      style: GoogleFonts.merienda(
+                        fontSize: 24,
+                        color: Colors.orange[900],
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
