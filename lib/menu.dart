@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:recipe_genie/addrecipe.dart';
 import 'package:recipe_genie/auth_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -12,9 +13,8 @@ class UserMenu extends StatelessWidget {
 
   Future<void> _logout(BuildContext context) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('isLoggedIn', false); // Clear login state
+    await prefs.setBool('isLoggedIn', false);
 
-    // Navigate to login page
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => AuthPage()),
@@ -24,7 +24,6 @@ class UserMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Drawer(
-      // backgroundColor: const Color(0xFFD3F5F9),
       child: Column(
         children: [
           UserAccountsDrawerHeader(
@@ -41,31 +40,11 @@ class UserMenu extends StatelessWidget {
             accountName: Text(
               username.toUpperCase(),
               style: const TextStyle(
-                fontSize: 25, // Increased font size
+                fontSize: 25,
                 color: Color(0xFFD3F5F9),
                 fontWeight: FontWeight.bold,
               ),
             ),
-            // accountName: Column(
-            //   children: [
-            //     const Icon(
-            //       Icons.person,
-            //       color: Color(0xFFD3F5F9),
-            //       size: 50, // Increased size
-            //     ),
-            //     const SizedBox(width: 15),
-            //     Expanded(
-            //       child: Text(
-            //         username.toUpperCase(),
-            //         style: const TextStyle(
-            //           fontSize: 34, // Increased font size
-            //           color: Color(0xFFD3F5F9),
-            //           fontWeight: FontWeight.bold,
-            //         ),
-            //       ),
-            //     ),
-            //   ],
-            // ),
             decoration: BoxDecoration(
               color: const Color(0xFF002330),
             ),
@@ -86,7 +65,10 @@ class UserMenu extends StatelessWidget {
               ),
             ),
             onTap: () {
-              // Handle navigation for adding a recipe
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => AddRecipe()),
+              );
             },
           ),
           const Divider(),

@@ -54,7 +54,9 @@ class _RecipiesDetailScreenState extends State<RecipiesDetailScreen> {
           ),
         ),
         backgroundColor: const Color.fromARGB(255, 0, 35, 48),
-        iconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: IconThemeData(
+          color: Colors.orange[900],
+        ),
         actions: [
           IconButton(
             icon: Icon(
@@ -68,7 +70,7 @@ class _RecipiesDetailScreenState extends State<RecipiesDetailScreen> {
                 widget.isLiked = !widget.isLiked;
               });
               if (widget.isLiked) {
-                await RecipeDatabaseHelper().insertRecipe({
+                await RecipeDatabaseHelper().insertFavouriteRecipe({
                   'id': widget.id,
                   'name': widget.name,
                   'imageUrl': widget.imageUrl,
@@ -248,7 +250,7 @@ class _RecipiesDetailScreenState extends State<RecipiesDetailScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              'Protiens',
+                              'Proteins',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
@@ -330,9 +332,8 @@ class _RecipiesDetailScreenState extends State<RecipiesDetailScreen> {
     return Text(
       title,
       style: const TextStyle(
-        fontSize: 22,
+        fontSize: 20,
         fontWeight: FontWeight.bold,
-        color: Color.fromARGB(255, 0, 35, 48),
       ),
     );
   }

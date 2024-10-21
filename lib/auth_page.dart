@@ -37,7 +37,9 @@ class _AuthPageState extends State<AuthPage> {
         _showMessage('User registered successfully');
         _usernameController.clear();
         _passwordController.clear();
-        _isRegistering = false;
+        setState(() {
+          _isRegistering = false;
+        });
       } catch (e) {
         _showMessage('Registration failed: ${e.toString()}');
       }
@@ -62,8 +64,18 @@ class _AuthPageState extends State<AuthPage> {
   }
 
   void _showMessage(String message) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
+    final snackBar = SnackBar(
+      content: Row(
+        children: [
+          Text(message),
+        ],
+      ),
+      duration: const Duration(seconds: 2),
+      behavior: SnackBarBehavior.floating,
+      backgroundColor: const Color.fromARGB(255, 0, 35, 48),
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
   @override
